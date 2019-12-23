@@ -445,6 +445,49 @@ public class USART : MonoBehaviour
         firstEulerData = false;
     }
 
+    public Slider[] CalibrateBars;
+    public Text[] CalibrateTexts;
+    public float CalForkPressure = 10.0f;
+    public float CalKnifePressure = 20.0f;
+    public float CalPressurePadValue = 3.0f;
+    public float CalKnifeGPressure = 20.0f;
+
+    public void Calibrate(int DeviceNo)
+    {
+        switch (DeviceNo)
+        {
+            case 1:
+                CalForkPressure = ForkPressure;
+                break;
+            case 2:
+                CalKnifeGPressure = KnifeGPressure;
+                break;
+            case 3:
+                CalKnifePressure = KnifePressure;
+                break;
+            case 4:
+                CalPressurePadValue = PressurePadValue;
+                break;
+        }
+    }
+
+    public void StartCalibrationDisplay()
+    {
+        InvokeRepeating("Calibrating", 0f, 0.01f);
+    }
+
+    void Calibrating()
+    {
+        CalibrateBars[0].value = ForkPressure;
+        CalibrateTexts[0].text = ForkPressure.ToString();
+        CalibrateBars[1].value = KnifeGPressure;
+        CalibrateTexts[1].text = ForkPressure.ToString();
+        CalibrateBars[2].value = KnifePressure;
+        CalibrateTexts[2].text = ForkPressure.ToString();
+        CalibrateBars[3].value = PressurePadValue;
+        CalibrateTexts[3].text = ForkPressure.ToString();
+    }
+
     public void CloseSerialPort()
     {
         if (SP != null)

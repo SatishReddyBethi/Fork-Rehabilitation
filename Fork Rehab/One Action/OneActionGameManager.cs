@@ -9,13 +9,14 @@ public class OneActionGameManager : MonoBehaviour
     public GameObject Gate;
     public GameObject Ring;
     public float PressurePadValue;
-    const float MaxPressurePadValue = 3.0f;
+    float MaxPressurePadValue = 3.0f;
     public float ForkPressure;
     public float KnifePressure;
     public float KnifeGraspPressure;
-    const float MaxKnifePressure = 20.0f;
-    const float MaxKnifeGraspPressure = 20.0f;
-    const float MaxForkPressure = 10.0f;
+    float MaxKnifePressure = 20.0f;
+    float MaxKnifeGraspPressure = 20.0f;
+    float MaxForkPressure = 10.0f;
+    float AngleScale;
     public GameObject Ball;
     private Rigidbody BallRB;
     float PreviousYPos;
@@ -30,7 +31,8 @@ public class OneActionGameManager : MonoBehaviour
     float ScaledPressurePadValue;
     float ScaledKnifePressure;
     float ScaledKnifeGraspPressure;
-    
+    public int Level;
+    public Dropdown Lvl;
 
     // Start is called before the first frame update
     void Start()
@@ -99,7 +101,10 @@ public class OneActionGameManager : MonoBehaviour
                 Gate.transform.localRotation = Quaternion.Euler(0.0f, 0.0f, 90.0f - (ScaledPressurePadValue * 90.0f));                
             }
             
-            Elevator.transform.localPosition = new Vector3(0.0f, -1.1f - (ScaledKnifePressure * 1.9f), 0.0f);
+            if(Elevator.activeInHierarchy)
+            {
+                Elevator.transform.localPosition = new Vector3(0.0f, -1.1f - (ScaledKnifePressure * 1.9f), 0.0f);
+            }
             
 
             
@@ -112,7 +117,7 @@ public class OneActionGameManager : MonoBehaviour
     {
         if (start)
         {
-            Ring.transform.localRotation = Quaternion.Euler(0f, 0f, Conn.CalbEulerX);
+            Ring.transform.localRotation = Quaternion.Euler(0f, 0f, Conn.CalbEulerX * AngleScale);
         }
     }
 
@@ -143,11 +148,43 @@ public class OneActionGameManager : MonoBehaviour
         ForkPressure = 0;
         PressurePadValue = 0;
     }
-
+    
     public void GameStart()
     {
+        Level = Lvl.value;
         Score = 0;
         start = true;
+        switch(Level)
+        {
+            case 0:
+                MaxPressurePadValue = Conn.CalPressurePadValue/2.0f;
+                MaxForkPressure = Conn.CalForkPressure/2.0f;
+                MaxKnifePressure = Conn.CalKnifePressure/2.0f;
+                MaxKnifeGraspPressure = Conn.CalKnifeGPressure/2.0f;
+                Elevator.SetActive(false);
+                AngleScale = 180.0f / 135.0f;
+                break;
+
+            case 1:
+                MaxPressurePadValue = Conn.CalPressurePadValue * (2.0f/3.0f);
+                MaxForkPressure = Conn.CalForkPressure * (2.0f / 3.0f);
+                MaxKnifePressure = Conn.CalKnifePressure * (2.0f / 3.0f);
+                MaxKnifeGraspPressure = Conn.CalKnifeGPressure * (2.0f / 3.0f);
+                Elevator.SetActive(false);
+                AngleScale = 180.0f / 150.0f;
+                break;
+
+            case 2:
+                MaxPressurePadValue = Conn.CalPressurePadValue;
+                MaxForkPressure = Conn.CalForkPressure;
+                MaxKnifePressure = Conn.CalKnifePressure;
+                MaxKnifeGraspPressure = Conn.CalKnifeGPressure;
+                Elevator.SetActive(true);
+                AngleScale = 1.0f;
+                break;
+
+
+        }
     }
 
     public void GameStop()
