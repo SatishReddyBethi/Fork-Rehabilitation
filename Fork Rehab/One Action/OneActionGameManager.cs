@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class OneActionGameManager : MonoBehaviour
 {
     public float EulerAngleZ;
+    public float ScaledEulerZ;
     public GameObject Gate;
     public GameObject Ring;
     public float PressurePadValue;
@@ -13,10 +14,11 @@ public class OneActionGameManager : MonoBehaviour
     public float ForkPressure;
     public float KnifePressure;
     public float KnifeGraspPressure;
-    float MaxKnifePressure = 20.0f;
-    float MaxKnifeGraspPressure = 20.0f;
+    float MaxKnifePressure = 3.0f;
+    float MaxKnifeGraspPressure = 10.0f;
     float MaxForkPressure = 10.0f;
-    float AngleScale;
+    public float AngleOffset = 0f;
+    public float AngleScale;
     public GameObject Ball;
     private Rigidbody BallRB;
     float PreviousYPos;
@@ -64,7 +66,22 @@ public class OneActionGameManager : MonoBehaviour
             PressurePadValue = Conn.PressurePadValue;
             KnifePressure = Conn.KnifePressure;
             KnifeGraspPressure = Conn.KnifeGPressure;
-
+            if(ForkPressure > MaxForkPressure)
+            {
+                ForkPressure = MaxForkPressure;
+            }
+            if (KnifeGraspPressure > MaxKnifeGraspPressure)
+            {
+                KnifeGraspPressure = MaxKnifeGraspPressure;
+            }
+            if (KnifePressure > MaxKnifePressure)
+            {
+                KnifePressure = MaxKnifePressure;
+            }
+            if (PressurePadValue > MaxPressurePadValue)
+            {
+                PressurePadValue = MaxPressurePadValue;
+            }
             ScaledForkPressure = ForkPressure / MaxForkPressure;
             ScaledPressurePadValue = PressurePadValue / MaxPressurePadValue;
             ScaledKnifePressure = KnifePressure / MaxKnifePressure;
@@ -87,7 +104,7 @@ public class OneActionGameManager : MonoBehaviour
             EulerAngleZ = Ring.transform.localRotation.eulerAngles.z;
             if (EulerAngleZ > 15.0f && EulerAngleZ < 75.0f) // The Gate Stays Open
             {
-                if (ForkPressure > 6.0f)
+                if (ForkPressure == MaxForkPressure)
                 {
                     Gravity = true;
                     BallRB.useGravity = true;
@@ -125,15 +142,29 @@ public class OneActionGameManager : MonoBehaviour
         }
     }
 
-
+    public float OldOff;
     public void FixedUpdate()
     {
+        
+        
         if (start)
         {
-            Ring.transform.localRotation = Quaternion.Euler(0f, 0f, Conn.CalbEulerX * AngleScale);
+            if(Conn.CalbEulerX < AngleScale)
+            {
+                ScaledEulerZ = (Conn.CalbEulerX / AngleScale) * 170.0f;
+            }
+            else if(Conn.CalbEulerX > 360.0f- AngleScale)
+            {
+                ScaledEulerZ = 190.0f + ((Conn.CalbEulerX - (360.0f -AngleScale)) / AngleScale) * 170.0f;
+            }
+            else
+            {
+                ScaledEulerZ = 170.0f + ((Conn.CalbEulerX - AngleScale) / 90.0f) * 20.0f;
+            }
+            Ring.transform.localRotation = Quaternion.Euler(0f, 0f, ScaledEulerZ + 45f);
         }
     }
-
+    
     public void CollisionEffect()
     {
         Score += 1;
@@ -174,7 +205,8 @@ public class OneActionGameManager : MonoBehaviour
         Level = Lvl.value;
         Score = 0;
         start = true;
-        switch(Level)
+        Ball.transform.position = new Vector3(0f, 5.5f, 0f);
+        switch (Level)
         {
             case 0:
                 MaxPressurePadValue = Conn.CalPressurePadValue/2.0f;
@@ -182,7 +214,7 @@ public class OneActionGameManager : MonoBehaviour
                 MaxKnifePressure = Conn.CalKnifePressure/2.0f;
                 MaxKnifeGraspPressure = Conn.CalKnifeGPressure/2.0f;
                 Elevator.SetActive(false);
-                AngleScale = 180.0f / 135.0f;
+                AngleScale = 135.0f; // When angle is 135 the scaled angle is 180
                 break;
 
             case 1:
@@ -191,7 +223,7 @@ public class OneActionGameManager : MonoBehaviour
                 MaxKnifePressure = Conn.CalKnifePressure * (2.0f / 3.0f);
                 MaxKnifeGraspPressure = Conn.CalKnifeGPressure * (2.0f / 3.0f);
                 Elevator.SetActive(false);
-                AngleScale = 180.0f / 150.0f;
+                AngleScale = 150.0f;
                 break;
 
             case 2:
@@ -200,7 +232,7 @@ public class OneActionGameManager : MonoBehaviour
                 MaxKnifePressure = Conn.CalKnifePressure;
                 MaxKnifeGraspPressure = Conn.CalKnifeGPressure;
                 Elevator.SetActive(true);
-                AngleScale = 1.0f;
+                AngleScale = 180.0f;
                 break;
 
 

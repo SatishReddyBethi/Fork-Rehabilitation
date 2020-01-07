@@ -31,9 +31,11 @@ public class USART : MonoBehaviour
     public List<int[]> Calibrations = new List<int[]>();
     private string[] LvlSavepath;
     public Dropdown lvl;
+    public OneActionGameManager OGM;
     // Use this for initialization
     void Start()
     {
+        OGM = GetComponent<OneActionGameManager>();
         LvlSavepath = new string[3];
         savedDataPath = Application.persistentDataPath + "/savedData";
         LvlSavepath[0] = savedDataPath + "/Level_1_Data";
@@ -350,14 +352,13 @@ public class USART : MonoBehaviour
                         {
                             if (firstEulerData)
                             {
-                                RotQuat = Quaternion.Euler(0f, 0f, float.Parse(forces[1])-45.0f);
-                                RotQuat = Quaternion.Inverse(RotQuat);
+                                RotateCal();
                                 firstEulerData = false;
                             }
                             else
                             {
                                 // Assign each variable in the string
-                                InputEu = new Vector3(float.Parse(forces[1]), float.Parse(forces[2]), float.Parse(forces[3]));
+                                InputEu = new Vector3(360.0f - float.Parse(forces[1]), 360.0f - float.Parse(forces[2]), 360.0f - float.Parse(forces[3]));
                                 ForkPressure = float.Parse(forces[0]);
                                 if (ForkPressure > MaxForkGraspForceLimit)
                                 {
@@ -428,6 +429,12 @@ public class USART : MonoBehaviour
     }
     #endregion
 
+    public void RotateCal()
+    {
+        float Offset = 0f;//45.0f * (OGM.AngleScale / 170.0f);
+        RotQuat = Quaternion.Euler(0f, 0f, InputEu.x - Offset);
+        RotQuat = Quaternion.Inverse(RotQuat);
+    }
     #region Buttons
     string Time_;
     public InputField Name;
@@ -463,10 +470,10 @@ public class USART : MonoBehaviour
     public Slider[] CalibrateBars;
     public Text[] CalibrateTexts;
     public float CalForkPressure = 10.0f;
-    public float CalKnifePressure = 20.0f;
+    public float CalKnifePressure = 3.0f;
     public float CalPressurePadValue = 3.0f;
-    public float CalKnifeGPressure = 20.0f;
-
+    public float CalKnifeGPressure = 10.0f;
+    public Text[] CurrTexts;
     const float MaxForkForceLimit = 10.0f; //Poking Force
     const float MaxForkGraspForceLimit = 20.0f;// Fork Grasp Force
     const float MaxKnifeForceLimit = 10.0f;//Knife cutting force
@@ -499,13 +506,17 @@ public class USART : MonoBehaviour
     void Calibrating()
     {
         CalibrateBars[0].value = ForkPressure/MaxForkGraspForceLimit;
-        CalibrateTexts[0].text = ForkPressure.ToString();
+        CurrTexts[0].text = ForkPressure.ToString();
+        CalibrateTexts[0].text = CalForkPressure.ToString();
         CalibrateBars[1].value = KnifeGPressure/MaxKnifeGraspForceLimit;
-        CalibrateTexts[1].text = KnifeGPressure.ToString();
+        CurrTexts[1].text = KnifeGPressure.ToString();
+        CalibrateTexts[1].text = CalKnifeGPressure.ToString();
         CalibrateBars[2].value = KnifePressure/MaxKnifeForceLimit;
-        CalibrateTexts[2].text = KnifePressure.ToString();
+        CurrTexts[2].text = KnifePressure.ToString();
+        CalibrateTexts[2].text = CalKnifePressure.ToString();
         CalibrateBars[3].value = PressurePadValue/MaxForkForceLimit;
-        CalibrateTexts[3].text = PressurePadValue.ToString();
+        CurrTexts[3].text = PressurePadValue.ToString();
+        CalibrateTexts[3].text = CalPressurePadValue.ToString();
     }
 
     public void CloseSerialPort()
